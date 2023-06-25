@@ -1,0 +1,41 @@
+from fastapi import *
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import *
+from sqlalchemy.orm import *
+from db import get_db
+import crud
+from models import departmentSchema, Department
+
+department_router = APIRouter()
+
+@department_router.post('/add-department')
+def add_department(req:departmentSchema, db: Session = Depends(get_db)):
+    try:
+        result =crud.create_crud(req, Department, db)
+        result = jsonable_encoder(result)
+        return JSONResponse(status_code=status.HTTP_201_CREATED, content=result)
+    except Exception as e:
+        print(e)
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Something went wrong')
+
+@department_router.get('/get-department')
+def get_department(db: Session = Depends(get_db)):
+    try:
+        result =crud.read_department(db)
+        result = jsonable_encoder(result)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=result)
+    except Exception as e:
+        print(e)
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Something went wrong')
+
+@department_router.put('/update-department/{id}')
+def update_department(id: int, req: departmentSchema, db: Session = Depends(get_db)):
+    try:
+        result = crud.update_department(id, req, db)
+        result = jsonable_encoder(result)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=result)
+    except Exception as e:
+        print(e)
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Something went wrong')
